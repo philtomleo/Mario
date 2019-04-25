@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="authoring-tool" content="Adobe_Animate_CC">
+<title>marop</title>
+<!-- write your code here -->
+<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+<script src="marop.js?1556175370594"></script>
+<script src="js/ndgmr.Collision.js"></script>
+<link rel="stylesheet" href="scss/index.css">
+
+<script>
+var canvas, stage, exportRoot, anim_container, dom_overlay_container, fnStartAnimation;
+function init() {
+	canvas = document.getElementById("canvas");
+	anim_container = document.getElementById("animation_container");
+	dom_overlay_container = document.getElementById("dom_overlay_container");
+	var comp=AdobeAn.getComposition("41147D31DF62994E91D3A82A20A39451");
+	var lib=comp.getLibrary();
+	var loader = new createjs.LoadQueue(false);
+	loader.addEventListener("fileload", function(evt){handleFileLoad(evt,comp)});
+	loader.addEventListener("complete", function(evt){handleComplete(evt,comp)});
+	var lib=comp.getLibrary();
+	loader.loadManifest(lib.properties.manifest);
+}
+function handleFileLoad(evt, comp) {
+	var images=comp.getImages();	
+	if (evt && (evt.item.type == "image")) { images[evt.item.id] = evt.result; }	
+}
+function handleComplete(evt,comp) {
+	//This function is always called, irrespective of the content. You can use the variable "stage" after it is created in token create_stage.
+	var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	var queue = evt.target;
+	var ssMetadata = lib.ssMetadata;
+	for(i=0; i<ssMetadata.length; i++) {
+		ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+	}
+	exportRoot = new lib.marop();
+	stage = new lib.Stage(canvas);
+
+	var loadint=0;
+	const Sound = [
+		{src:"./assets/bg.mp3",id:"bg"},
+		{src:"./assets/boom.mp3",id:"boom"},
+		{src:"./assets/coin.mp3",id:"coin"},
+		{src:"./assets/play.mp3",id:"play"}
+	]
+	createjs.Sound.alternateExtensions = ["mp3"];
+	createjs.Sound.addEventListener("fileload",function(e){
+		loadint++
+		if(loadint == Sound.length){
+			bgAudio = createjs.Sound.play("bg",{loop:-1});
+			bgAudio.volume = 0.1;
+		}
+	});
+	createjs.Sound.registerSounds(Sound,"/");
+
+	const speed = 10;
+	const Attack = 10;
+	let isStart = false;
+	let Hp = 100;
+	let winNum = 0;
+	let isKeydown = false;
+	let Positions = 1;
+	var Mario = new lib.MarioUser();
+	Mario.x = 321;
+	Mario.y = 392;
+	exportRoot.addChild(Mario);
+
+	document.querySelector(".gamePlayBtn").addEventListener("click",function(){
+		createjs.Sound.play("play");
+		isStart = true;
+		document.querySelector(".gamePlayBtn").style.display = "none";
+		window.addEventListener("keydown",keydownMove)
+		window.addEventListener("keyup",keyupMove)
+	});
+	document.querySelector(".resetPlay").addEventListener("click",function(){
+		window.location.reload();
+	});
+	let timeCoin = setInterval(function(){
+		if(!isStart) return;
+		let Coin = new lib.Coin();
+		Coin.x = Math.floor(Math.random() * (580-50+1) + 50);
+		Coin.y = -50;
+		exportRoot.addChildAt(Coin, 1);
+
+		createjs.Tween.get(Coin)
+		.to({y:400}, 2500)
+		.call(()=>{
+			//清除金币
+			Hp -= Attack;
+			document.querySelector(".hp").style.width = `${Hp}%`;
+			exportRoot.removeChild(Coin);
+		})
+		.addEventListener("change", ()=>{
+			let hit = ndgmr.checkRectCollision(Coin,Mario);
+			//產生碰撞時回傳 true
+			if(hit){
+				createjs.Sound.play("coin");
+				exportRoot.removeChild(Coin); //清除金幣元件
+				createjs.Tween.removeTweens(Coin); //移除金幣動畫
+				winNum ++;
+				document.querySelector(".winNum").innerHTML = winNum ;
+				
+			}
+		})
+	}, 1000);
+	function keydownMove(e){
+		if(isKeydown) return;
+		if(e.keyCode===37 || e.keyCode===39){
+			isKeydown = true;
+			Positions = e.keyCode === 39 ? 1 : -1;
+			Mario.gotoAndPlay("run");
+		}
+	}
+	
+	function keyupMove(){
+		isKeydown = false;
+		Mario.gotoAndPlay("stop");
+	}
+
+	createjs.Ticker.addEventListener("tick",tickFn)
+	function tickFn(){
+		if(Hp <= 0){
+			createjs.Sound.play("boom");
+			clearInterval(timeCoin);
+			Mario.gotoAndPlay("del");
+			document.querySelector(".over").style.display = "flex" ;
+			window.removeEventListener("keydown",keydownMove)
+			window.removeEventListener("keyup",keyupMove)
+			createjs.Ticker.removeEventListener("tick",tickFn)
+		}
+		if(!isKeydown) return;
+		if(Mario.x + speed * Positions <=0){
+			Mario.x == 0;
+			return;
+		}
+		if(Mario.x + speed * Positions >=650){
+			Mario.x == 650;
+			return;
+		}
+		Mario.x += speed * Positions;
+		Mario.scaleX = Positions;
+	}
+
+	//Registers the "tick" event listener.
+	fnStartAnimation = function() {
+		stage.addChild(exportRoot);
+		createjs.Ticker.setFPS(lib.properties.fps);
+		createjs.Ticker.addEventListener("tick", stage);
+	}	    
+	//Code to support hidpi screens and responsive scaling.
+	AdobeAn.makeResponsive(false,'both',false,1,[canvas,anim_container,dom_overlay_container]);	
+	AdobeAn.compositionLoaded(lib.properties.id);
+	fnStartAnimation();
+}
+</script>
+<!-- write your code here -->
+</head>
+<body onload="init();" style="margin:0px;">
+	<div id="app">
+
+		<h1 class="winNum">0</h1>
+		<a class="gamePlayBtn"><img src="images/play.png" alt=""></a>
+		<div class="over">
+			<div class="box">
+				<img src="images/gameover.png" alt="">
+				<a class="resetPlay"><img src="images/play.png" alt=""></a>
+			</div>
+		</div>
+		<div class="hpBar">
+			<h2>HP</h2>
+			<div class="hpBox">
+				<div class="hp"></div>
+			</div>
+		</div>
+		<div id="animation_container" style="background-color:rgba(255, 255, 255, 1.00); width:640px; height:480px">
+			<canvas id="canvas" width="640" height="480" style="position: absolute; display: block; background-color:rgba(255, 255, 255, 1.00);"></canvas>
+			<div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:640px; height:480px; position: absolute; left: 0px; top: 0px; display: block;">
+			</div>
+		</div>
+	</div>
+	
+</body>
+</html>

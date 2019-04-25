@@ -1,0 +1,91 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+#app {
+  width: 640px;
+  height: 480px;
+  position: relative;
+}
+
+#app > h1.winNum {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 30px;
+  z-index: 10;
+  color: white;
+}
+
+.hpBar {
+  z-index: 10;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 145px;
+}
+
+.hpBar > h2 {
+  color: black;
+  text-shadow: 1px 1px 0px #fff;
+  float: left;
+}
+
+.hpBox {
+  width: 100px;
+  height: 25px;
+  border: 4px solid #000;
+  float: right;
+  background-color: #fff;
+}
+
+.hpBox > .hp {
+  width: 100%;
+  height: 100%;
+  background-color: #fea14a;
+}
+
+.over {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.over > .box {
+  width: 371px;
+}
+
+.over > div > a {
+  display: block;
+  cursor: pointer;
+  width: 100px;
+  margin: 20px auto 0 auto;
+}
+
+.over > div > a > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+a.gamePlayBtn {
+  cursor: pointer;
+  position: absolute;
+  z-index: 10;
+  width: 180px;
+  height: 51px;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+/*# sourceMappingURL=index.css.map */
