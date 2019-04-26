@@ -50,7 +50,7 @@ function handleComplete(evt,comp) {
 	createjs.Sound.alternateExtensions = ["mp3"];
 	createjs.Sound.addEventListener("fileload",function(e){
 		loadint++
-		if(loadint == Sound.length){
+		if(loadint === Sound.length){
 			bgAudio = createjs.Sound.play("bg",{loop:-1});
 			bgAudio.volume = 0.1;
 		}
